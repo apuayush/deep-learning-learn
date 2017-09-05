@@ -27,9 +27,8 @@ def data_prediction():
     X_test = sc_X.transform(X_test)
     
     # fitting logistic regression to the training set
-    
-    
-    # set your own classifier models linear, multiple or logistic regression
+    classifier = LogisticRegression(random_state = 0) # random_state = 0 to set no shuffling
+    classifier.fit(X_train, Y_train)
     
     # predict the test set results
     Y_pred = classifier.predict(X_test)
