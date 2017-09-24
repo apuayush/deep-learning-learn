@@ -1,8 +1,8 @@
-#other libraries
+# other libraries
 import pandas as pd
 import numpy as np
 
-#sklearn libraries
+# sklearn libraries
 from sklearn.preprocessing import Imputer, LabelEncoder, OneHotEncoder, StandardScaler
 from sklearn.cross_validation import train_test_split, cross_val_score
 from sklearn.linear_model import LinearRegression
@@ -15,16 +15,15 @@ class Network(object):
         starting the dataset location
         :param data_location:
         """
-        self.dataset = np.array(pd.read_csv(data_location).iloc[:,:].values)
+        self.dataset = np.array(pd.read_csv(data_location).iloc[:, :].values)
         self.X = None
         self.Y = None
-        self.w = np.zeros((len(self.dataset[0]), 1))
-        self.b = 0
+        self.w = None
+        self.b = 0.0
         self.X_train = None
         self.X_test = None
         self.Y_test = None
         self.Y_train = None
-        # print(self.X)
         # TODO - structure of Y could create a problem
 
     def transform(self):
@@ -46,21 +45,24 @@ class Network(object):
         self.X = np.array(self.dataset[:, 3:13])
         self.Y = np.array(self.dataset[:, 13])
         self.transform()
+        self.w = np.zeros((len(self.X[:, 0]), 1))
 
         size = len(self.X[0])
-        margin = int((1-test_percent/100)*size)
+        margin = int((1 - test_percent / 100) * size)
         self.X_train = self.X[:, 0:margin]
         self.X_test = self.X[:, margin:]
         self.Y_train = self.Y[:margin]
         self.Y_test = self.Y[margin:]
 
-    def start(self):
-        self.propagate()
+    def start(self, num_iterations=100, learning_rate=0.009, print_cost=False):
+        self.optimize(num_iterations, learning_rate, print_cost)
+        self.predict_test()
 
     def propagate(self):
         m = self.X_train.shape[1]
-        Y_ = sigmoid(np.dot(self.w.T, self.X_train)+self.b)
-        cost = -1/m*np.sum(self.Y_train*np.log(Y_)+(1-self.Y_train)*np.log(1-Y_))
+        Y_ = sigmoid(np.dot(self.w.T, self.X_train) + self.b)
+        # TODO - normalize the Y vector
+        cost = (-1 / m) * np.sum(self.Y_train * np.log(Y_) + (1 - self.Y_train) * np.log(1 - Y_))
 
         dw = 1 / m * np.dot(self.X_train, (Y_ - self.Y_train).T)
         db = 1 / m * np.sum(Y_ - self.Y_train)
@@ -75,11 +77,37 @@ class Network(object):
 
         return grads, cost
 
+    def optimize(self, num_iterations, learning_rate, print_cost):
+        costs = []
+
+        for i in range(num_iterations):
+            grads, cost = self.propagate()
+            dw = grads["dw"]
+            db = grads['db']
+            # print(learning_rate)
+            # backpropagation
+            self.w -= learning_rate * dw
+            self.b -= learning_rate * db
+
+            # print 100th iteration
+            if i % 100 == 0:
+                costs.append(cost)
+
+            if print_cost and i % 100 == 0:
+                # print("Cost after iteration %i: %f" % (i, cost))
+                pass
+
+    def predict_test(self):
+        m = self.X_test.shape[1]
+        Y_pred = np.zeros((1, m))
+        print(self.w.shape, Y_pred.shape)
+
 
 def sigmoid(z):
-    return 1/(1+np.exp(-1*z))
+    return 1.0 / (1.0 + np.exp(-1 * z))
 
 
 if __name__ == "__main__":
     obj = Network("Churn_Modelling.csv")
     obj.data_segregation(randomize=1)
+    obj.start(print_cost=True)
