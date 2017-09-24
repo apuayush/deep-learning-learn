@@ -53,8 +53,31 @@ class Network(object):
         self.X_test = self.X[:, margin:]
         self.Y_train = self.Y[:margin]
         self.Y_test = self.Y[margin:]
-        print(self.X_test[:, 0], self.Y_test[0])
 
+    def start(self):
+        self.propagate()
+
+    def propagate(self):
+        m = self.X_train.shape[1]
+        Y_ = sigmoid(np.dot(self.w.T, self.X_train)+self.b)
+        cost = -1/m*np.sum(self.Y_train*np.log(Y_)+(1-self.Y_train)*np.log(1-Y_))
+
+        dw = 1 / m * np.dot(self.X_train, (Y_ - self.Y_train).T)
+        db = 1 / m * np.sum(Y_ - self.Y_train)
+
+        assert (dw.shape == self.w.shape)
+        assert (db.dtype == float)
+        cost = np.squeeze(cost)
+        assert (cost.shape == ())
+
+        grads = {"dw": dw,
+                 "db": db}
+
+        return grads, cost
+
+
+def sigmoid(z):
+    return 1/(1+np.exp(-1*z))
 
 
 if __name__ == "__main__":
