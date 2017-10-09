@@ -45,7 +45,7 @@ class Network(object):
         self.X = np.array(self.dataset[:, 3:13])
         self.Y = np.array(self.dataset[:, 13])
         self.transform()
-        self.w = np.zeros((len(self.X[:, 0]), 1))
+        self.w = np.random.randn((len(self.X[:, 0]), 1))*0.01
 
         size = len(self.X[0])
         margin = int((1 - test_percent / 100) * size)
@@ -55,10 +55,10 @@ class Network(object):
         self.Y_test = self.Y[margin:]
 
     def start(self, num_iterations=100, learning_rate=0.009, print_cost=False):
-        self.optimize(num_iterations, learning_rate, print_cost)
+        self.backpropagation(num_iterations, learning_rate, print_cost)
         self.predict_test()
 
-    def propagate(self):
+    def forwardpropagation(self):
         m = self.X_train.shape[1]
         Y_ = sigmoid(np.dot(self.w.T, self.X_train) + self.b)
         # TODO - normalize the Y vector
@@ -77,11 +77,11 @@ class Network(object):
 
         return grads, cost
 
-    def optimize(self, num_iterations, learning_rate, print_cost):
+    def backpropagation(self, num_iterations, learning_rate, print_cost):
         costs = []
 
         for i in range(num_iterations):
-            grads, cost = self.propagate()
+            grads, cost = self.forwardpropagation()
             dw = grads["dw"]
             db = grads['db']
             # print(learning_rate)
@@ -94,8 +94,7 @@ class Network(object):
                 costs.append(cost)
 
             if print_cost and i % 100 == 0:
-                # print("Cost after iteration %i: %f" % (i, cost))
-                pass
+                print("Cost after iteration %i: %f" % (i, cost))
 
     def predict_test(self):
         m = self.X_test.shape[1]
